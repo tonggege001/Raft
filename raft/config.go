@@ -330,8 +330,8 @@ func (cfg *config) nCommitted(index int) (int, interface{}) {
 
 		if ok {
 			if count > 0 && cmd != cmd1 {
-				cfg.t.Fatalf("committed values do not match: index %v, %v, %v\n",
-					index, cmd, cmd1)
+				cfg.t.Fatalf("committed values do not match: rfid=%d, index %v, %v, %v\n",
+					i, index, cmd, cmd1)
 			}
 			count += 1
 			cmd = cmd1
@@ -403,13 +403,16 @@ func (cfg *config) one(cmd int, expectedServers int) int {
 		}
 
 		if index != -1 {
+			_, _ = DPrintf("####, CHECK_ONE, index1==index=%d", index)
 			// somebody claimed to be the leader and to have
 			// submitted our command; wait a while for agreement.
 			t1 := time.Now()
 			for time.Since(t1).Seconds() < 2 {
 				nd, cmd1 := cfg.nCommitted(index)
+				_, _ = DPrintf("####, CHECK_ONE, nd=%d, cmd1=%d, expectedServers=%d", nd, cmd1)
 				if nd > 0 && nd >= expectedServers {
 					// committed
+					_, _ = DPrintf("####, CHECK_ONE committed, cmd2")
 					if cmd2, ok := cmd1.(int); ok && cmd2 == cmd {
 						// and it was the command we submitted.
 						return index

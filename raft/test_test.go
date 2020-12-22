@@ -39,6 +39,34 @@ func TestInitialElection(t *testing.T) {
 
 	fmt.Printf("  ... Passed\n")
 }
+// bysui
+//func TestReElection2(t *testing.T) {
+//	servers := 3
+//	cfg := make_config(t, servers, false)
+//	defer cfg.cleanup()
+//
+//	fmt.Printf("Test: election after network failure ...\n")
+//
+//	leader1 := cfg.checkOneLeader()
+//
+//	// if the leader disconnects, a new one should be elected.
+//	cfg.disconnect((leader1+1)%servers)
+//	time.Sleep(2*RaftElectionTimeout)
+//	leader2 := cfg.checkOneLeader()
+//
+//	// if the old leader rejoins, that shouldn't
+//	// disturb the old leader.
+//	cfg.connect((leader1+1)%servers)
+//	time.Sleep(2*RaftElectionTimeout)
+//	leader3 := cfg.checkOneLeader()
+//
+//	if leader1==leader2 && leader2 == leader3 {
+//		fmt.Printf("PASS!\n")
+//	}else{
+//		fmt.Printf("ERROR\n")
+//	}
+//
+//}
 
 func TestReElection(t *testing.T) {
 	servers := 3
