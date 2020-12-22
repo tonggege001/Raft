@@ -333,7 +333,7 @@ func (rf * Raft) GetLastLogEntry() LogEntry{
 }
 
 func (rf *Raft) sendAppendEntriesToOnePeer(peerId int) {
-	rf.mu.Lock()
+	// 这里加锁会产生死锁，我也没找到引发的原因……所以就不加锁了
 	args := AppendEntriesArgs {
 		Term: 				rf.CurrentTerm,
 		LeaderId: 			rf.me,
@@ -344,7 +344,6 @@ func (rf *Raft) sendAppendEntriesToOnePeer(peerId int) {
 	if args.PrevLogIndex < len(rf.Logs) {
 		args.Logs = rf.Logs[rf.NextIndex[peerId]:]
 	}
-	rf.mu.Unlock()
 
 	_, _ = DPrintf("sendAppendEntriesToOnePeer me=%d, peerId: %d, args: %+v", rf.me, peerId, args)
 	go func(peerId int, args AppendEntriesArgs) {
@@ -434,7 +433,7 @@ func(rf * Raft) LoopHeartBeat(){
 		for i:= 0; i<len(rf.peers); i++ {
 			if i != rf.me {
 				_, _ = DPrintf("%d start LoopHeartBeat to %d on term %d, rf=%+v", rf.me, i, rf.CurrentTerm, rf)
-				rf.sendAppendEntriesToOnePeer(i)
+				go rf.sendAppendEntriesToOnePeer(i)
 			}
 		}
 		time.Sleep(HeartBeatInterval)
@@ -450,7 +449,9 @@ func (rf * Raft)sendAppendEntry(server int, args AppendEntriesArgs, reply *Appen
 
 
 func (rf * Raft) AppendEntries(args AppendEntriesArgs, reply * AppendEntriesReply){
+	_, _ = DPrintf("AppendEntries before lock to %d arg=%+v, reply=%+v", rf.me, args, reply)
 	rf.mu.Lock()
+	_, _ = DPrintf("AppendEntries after lock to %d arg=%+v, reply=%+v", rf.me, args, reply)
 	defer rf.mu.Unlock()
 
 	if args.Term < rf.CurrentTerm  && args.LeaderCommit <= rf.CommitIndex{			// 添加日志时如果发送方term小于接收方term则拒绝，然后返回一个高的term
